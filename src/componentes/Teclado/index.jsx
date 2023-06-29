@@ -1,12 +1,14 @@
 import styles from "./Teclado.module.css";
+import { FUNCOES } from "./funcoes-matematicas";
 
 const teclas = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
 
 let teclaNumerica = false;
-let acumulador = 0;
-let ultimoSinal = null;
+
+let fnAcumulador = fnZero();
 
 export default function Teclado({ fnEntrar }) {
+  const fnRender = render(fnEntrar);
   const [valor, setValor] = fnEntrar;
 
   return (
@@ -23,51 +25,40 @@ export default function Teclado({ fnEntrar }) {
           {tecla}
         </button>
       ))}
-      {["/", "*", "-", "+"].map((tecla, index) => (
-        <button
-          style={posicao(index + 1, 4)}
-          onClick={() => {
-            igual(valor);
-            ultimoSinal = tecla;
-            setValor(acumulador);
-          }}
-        >
-          {tecla}
+      {FUNCOES.map((fn, index) => (
+        <button style={posicao(index, 3)} onClick={() => fnRender(fn)}>
+          {fn.simbolo}
         </button>
       ))}
 
       <button
-        style={posicao(4, 1)}
+        style={posicao(3)}
         onClick={() => {
-          acumulador = 0;
-          ultimoSinal = null;
+          fnAcumulador = fnZero();
+          teclaNumerica = false;
           setValor(0);
         }}
       >
         C
       </button>
-      <button
-        onClick={() => {
-          igual(valor);
-          
-          setValor(acumulador);
-        }}
-      >
-        =
-      </button>
+      <button onClick={() => fnRender(fnZero)}>=</button>
     </section>
   );
 }
 
-function posicao(linha, coluna) {
-  return { gridRowStart: linha, gridColumnStart: coluna };
+function posicao(linha, coluna = 0) {
+  return { gridRowStart: linha + 1, gridColumnStart: coluna + 1};
 }
 
-function igual(num) {
-  if (ultimoSinal) {
-    eval(`acumulador = ${acumulador} ${ultimoSinal} ${num}`);
-  } else acumulador = num;
+function fnZero() {
+  return (num) => num;
+}
 
-  ultimoSinal = null;
-  teclaNumerica = false;
+function render([valor, setValor]) {
+  return (fn) => {
+    const x = fnAcumulador(valor);
+    fnAcumulador = fn(x);
+    teclaNumerica = false;
+    setValor(x);
+  };
 }
